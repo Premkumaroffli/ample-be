@@ -86,7 +86,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'https://api.businesstrendsblog.com/',
+	'hostname' => 'localhost',
 	'username' => 'u694695253_01',
 	'password' => 'Prem@123#321',
 	'database' => 'u694695253_expense',
