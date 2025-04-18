@@ -91,14 +91,14 @@ switch (ENVIRONMENT)
 
 // For Live
 
-require_once __DIR__ . '/application/helpers/env_helper.php';
-load_env();
+// require_once __DIR__ . '/application/helpers/env_helper.php';
+// load_env();
 
 
-// Set environment dynamically
-if (!defined('ENVIRONMENT')) {
-    define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
-}
+// // Set environment dynamically
+// if (!defined('ENVIRONMENT')) {
+//     define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
+// }
 
 $domain = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
 $domain .= "://". @$_SERVER['HTTP_HOST'];
@@ -108,7 +108,7 @@ switch ($domain) {
     case 'https://localhost':
         define('ENVIRONMENT', 'development');
         break;
-    case 'https://api.businesstrendsblog.com':
+    case 'https://api.businesstrendsblog.com';
         define('ENVIRONMENT', 'production');
         break;
 
