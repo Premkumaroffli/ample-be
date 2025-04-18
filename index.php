@@ -89,6 +89,25 @@ switch (ENVIRONMENT)
 		exit(1); // EXIT_ERROR
 }
 
+// For Live
+
+
+$domain = $_SERVER['HTTP_HOST'];
+
+switch ($domain) {
+    case 'https://localhost':
+        define('ENVIRONMENT', 'development');
+        break;
+    case 'https://businesstrendsblog.com':
+        define('ENVIRONMENT', 'production');
+        break;
+    default:
+        define('ENVIRONMENT', 'production');
+        break;
+}
+
+// For Live
+
 /*
  *---------------------------------------------------------------
  * SYSTEM DIRECTORY NAME
