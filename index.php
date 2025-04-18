@@ -53,7 +53,34 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	// define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+
+
+// For Live
+
+// require_once __DIR__ . '/application/helpers/env_helper.php';
+// load_env();
+
+
+// // Set environment dynamically
+// if (!defined('ENVIRONMENT')) {
+//     define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
+// }
+
+$domain = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
+$domain .= "://". @$_SERVER['HTTP_HOST'];
+
+switch ($domain) {
+    case 'https://localhost':
+        define('ENVIRONMENT', 'development');
+        break;
+    case 'https://api.businesstrendsblog.com':
+        define('ENVIRONMENT', 'production');
+        break;
+
+}
+
+// For Live
 
 /*
  *---------------------------------------------------------------
@@ -88,32 +115,6 @@ switch (ENVIRONMENT)
 		echo 'The application environment is not set correctly.';
 		exit(1); // EXIT_ERROR
 }
-
-// For Live
-
-// require_once __DIR__ . '/application/helpers/env_helper.php';
-// load_env();
-
-
-// // Set environment dynamically
-// if (!defined('ENVIRONMENT')) {
-//     define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
-// }
-
-$domain = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
-$domain .= "://". @$_SERVER['HTTP_HOST'];
-
-switch ($domain) {
-    case 'https://localhost':
-        define('ENVIRONMENT', 'development');
-        break;
-    case 'https://api.businesstrendsblog.com':
-        define('ENVIRONMENT', 'production');
-        break;
-
-}
-
-// For Live
 
 /*
  *---------------------------------------------------------------
