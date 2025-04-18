@@ -94,6 +94,12 @@ switch (ENVIRONMENT)
 require_once __DIR__ . '/application/helpers/env_helper.php';
 load_env();
 
+
+// Set environment dynamically
+if (!defined('ENVIRONMENT')) {
+    define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
+}
+
 $domain = $_SERVER['HTTP_HOST'];
 
 switch ($domain) {
