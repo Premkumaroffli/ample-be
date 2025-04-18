@@ -101,6 +101,7 @@ if (!defined('ENVIRONMENT')) {
 }
 
 $domain = $_SERVER['HTTP_HOST'];
+print_r($domain);
 
 switch ($domain) {
     case 'https://localhost':
