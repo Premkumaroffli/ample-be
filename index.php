@@ -100,7 +100,8 @@ if (!defined('ENVIRONMENT')) {
     define('ENVIRONMENT', getenv('CI_ENV') ?: 'development');
 }
 
-$domain = $_SERVER['HTTP_HOST'];
+$domain = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
+$domain .= "://". @$_SERVER['HTTP_HOST'];
 print_r($domain);
 
 switch ($domain) {
@@ -110,9 +111,7 @@ switch ($domain) {
     case 'https://api.businesstrendsblog.com':
         define('ENVIRONMENT', 'production');
         break;
-    default:
-        define('ENVIRONMENT', 'production');
-        break;
+
 }
 
 // For Live
