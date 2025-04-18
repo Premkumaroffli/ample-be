@@ -91,6 +91,8 @@ switch (ENVIRONMENT)
 
 // For Live
 
+require_once __DIR__ . '/application/helpers/env_helper.php';
+load_env();
 
 $domain = $_SERVER['HTTP_HOST'];
 
