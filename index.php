@@ -102,13 +102,12 @@ switch (ENVIRONMENT)
 
 $domain = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
 $domain .= "://". @$_SERVER['HTTP_HOST'];
-print_r($domain);
 
 switch ($domain) {
     case 'https://localhost':
         define('ENVIRONMENT', 'development');
         break;
-    case 'https://api.businesstrendsblog.com';
+    case 'https://api.businesstrendsblog.com':
         define('ENVIRONMENT', 'production');
         break;
 
