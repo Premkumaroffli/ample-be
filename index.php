@@ -107,7 +107,7 @@ switch ($domain) {
     case 'https://localhost':
         define('ENVIRONMENT', 'development');
         break;
-    case 'https://businesstrendsblog.com':
+    case 'https://api.businesstrendsblog.com':
         define('ENVIRONMENT', 'production');
         break;
     default:
