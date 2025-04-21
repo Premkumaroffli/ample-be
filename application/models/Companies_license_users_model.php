@@ -16,6 +16,8 @@ class Companies_license_users_model extends MY_Model {
         $quries = array();
 
         $quries[] = "CREATE TABLE `companies_license_users` ( `id` int(11) NOT NULL AUTO_INCREMENT, `company_id` varchar(255) NOT NULL, `email` varchar(255) NOT NULL, `created_by` varchar(255) NOT NULL, `updated_by` varchar(255) NOT NULL, `created_time` varchar(255) NOT NULL, `updated_time` varchar(255) NOT NULL, `session_id` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB;";
+    
+        $quries[] = "alter table companies_license_users add access_blob LONGBLOB after email;";
     }
 
     public function test()

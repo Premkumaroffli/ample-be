@@ -121,4 +121,18 @@ class MY_Model extends CI_Model {
         $this->db->delete($this->table);
         return true; 
     }
+
+    public function delete_by($array=[])
+    {
+        foreach($array as $k => $v)
+        {
+            if(!empty($k) && !empty($v))
+            {
+                $this->db->where($k, $v);
+            }
+        }
+        $query = $this->db->delete($this->table);
+        
+        return true;
+    }
 }

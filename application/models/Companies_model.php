@@ -26,6 +26,8 @@ class Companies_model extends MY_Model {
         `session_id` varchar(255) NOT NULL,
         PRIMARY KEY (`id`)
         ) ENGINE=InnoDB";
+
+        $quries[] = "alter table companies add model_ids varchar(255) after company";
     }
 
     public function test()
