@@ -226,20 +226,18 @@ class Companies extends CI_Controller {
 
     public function getCompaniesCurrentUser()
     {
-        if($this->app_users->authenticate())
-        {
-            $user = $this->app_users->getCurrentUser();
+        $postData = json_decode(file_get_contents('php://input'), true);
 
-            $companies_list = $this->db->query("select *, (select company from companies where id = company_id) as company_name from companies_license_users where email = '$user->email'")->result();
-            foreach($companies_list as $cmp)
-            {
-                $cmp->access_blob = unserialize($cmp->access_blob);
-            }
-            $this->loader->sendresponse($companies_list);
-        }
-        else
-        {
-            $this->loader->sendresponse();
-        }
+        $user = $this->app_users->get_by(array('email' => $postData['email']));
+
+        $user = (object)($user[0]);
+
+        $companies_list = $this->db->query("select company_id, (select company from companies where id = company_id) as company_name from companies_license_users where email = '$user->email'")->result();
+        // foreach($companies_list as $cmp)
+        // {
+        //     $cmp->access_blob = unserialize($cmp->access_blob);
+        // }
+        $this->loader->sendresponse($companies_list);
+       
     }
 }

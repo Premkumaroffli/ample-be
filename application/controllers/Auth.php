@@ -120,17 +120,19 @@ class Auth extends CI_Controller {
         $this->loader->sendresponse($response);
     }
 
-    public function loginByCompany($company_id)
+    public function loginByCompany()
     {
-        $fetchUser = $this->app_users->getCurrentUser();
+        $loginData = json_decode(file_get_contents('php://input'), true);
+        $fetchUser = $this->app_users->get_by(array('email' => $loginData['email']));
+        $fetchUser = (object)($fetchUser[0]);
         $jwt = new JWT();
         $token = array(
             'id' => $fetchUser->id,
             'email' => $fetchUser->email,
             'username' => $fetchUser->username,
             'phone_no' => $fetchUser->phone_no,
-            'company_id' => $company_id,
-            'exp' => time() + 3600  // Token expiry
+            'company_id' => $loginData['company_id'],
+            'exp' => time() + 5000  // Token expiry
         );
 
         $jwt = $jwt->encode($token, $this->key, 'HS256');

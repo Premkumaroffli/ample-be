@@ -67,6 +67,7 @@ class Masters extends CI_Controller {
             if(sizeof($app_access) > 0)
             {
                 $data = new stdClass;
+                $data->admin = $current_user->email == 'prem@gmail.dex' ? 1 : 0;
                 $data->nav_data = array();
                 $data->nav_data = $this->db->query("select * from (select b.*, ifnull(a.id, 0) as ml_id, ifnull(b.id, 0) as mh_id from modellist a left join modelheader b on a.id = b.modellist_id)final where ml_id in($access_model->modellist_ids) and mh_id in($access_model->modelheader_ids);")->result();
                 $d = $this->db->last_query();
