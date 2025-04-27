@@ -62,6 +62,12 @@ class Expense_list_model extends MY_Model {
             return false;
         }
     }
+
+    public function deleteExpenseList($id) {
+        $this->db->where('id', $id);
+        return $this->db->delete($this->table);
+        
+    }
    
     public function saveAppUsers($userData='') 
     {

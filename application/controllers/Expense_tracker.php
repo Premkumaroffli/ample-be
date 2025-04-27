@@ -30,7 +30,10 @@ class Expense_tracker extends CI_Controller {
 
 	public function getExpenselist()
 	{
-		$response = $this->expense_list->get();
+		$current_user = $this->app_users->getCurrentUser();
+		$where = array();
+		$where['created_by'] = $current_user->username;
+		$response = $this->expense_list->get_by($where);
 
         $this->loader->sendresponse($response);
 	}
@@ -49,7 +52,10 @@ class Expense_tracker extends CI_Controller {
 
 	public function getExpenselistSB()
 	{
-		$response = $this->expense_list->get();
+		$current_user = $this->app_users->getCurrentUser();
+		$where = array();
+		$where['created_by'] = $current_user->username;
+		$response = $this->expense_list->get_by($where);
 
 		foreach($response as $r)
 		{
@@ -65,6 +71,22 @@ class Expense_tracker extends CI_Controller {
 		$where = array();
 		
 	}
+
+    public function deleteExpenseList()
+    {
+        if($this->app_users->authenticate())
+        {
+            $postData = json_decode(file_get_contents('php://input'), true);
+            $id = isset($postData['id']) ? $postData['id'] : null;
+            $this->expense_list->delete($id);
+            $this->loader->sendresponse($id);
+        }
+        else
+        {
+            $this->loader->sendresponse();
+        }
+
+    }
 
 	public function saveExpenseDetails()
 	{
