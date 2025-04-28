@@ -1,10 +1,9 @@
 <?php
 
-class App_users_model extends MY_Model {
+class Employee_model extends MY_Model {
     
-    public $table = 'app_users';
-
-    private $key = "ample&$@";
+    public $table = 'employee';
+    public $primary_key = 'id';
 
     public function __construct() {
         parent::__construct();
@@ -16,17 +15,17 @@ class App_users_model extends MY_Model {
     {
         $quries = array();
 
-        $quries[] = "CREATE TABLE `app_users` (`id` INT NOT NULL AUTO_INCREMENT , `username` VARCHAR(255) NOT NULL , `password` VARCHAR(255) NOT NULL , `hpassword` VARCHAR(255) NOT NULL , `salt` VARCHAR(255) NOT NULL , `email` VARCHAR(255) NOT NULL , `phone_no` VARCHAR(12) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-    }
-
-    public function generate_salt($length = 32) 
-    {
-        return bin2hex(random_bytes($length));
-    }
-
-    public function hash_password($password ='', $salt) 
-    {
-        return hash('sha256', $salt . $password);
+        $quries[] = "CREATE TABLE `employee` (
+                    `id` int(11) NOT NULL AUTO_INCREMENT,
+                    `name` varchar(255) NOT NULL,
+                    `status` int(11) NOT NULL,
+                    `created_by` varchar(255) NOT NULL,
+                    `updated_by` varchar(255) NOT NULL,
+                    `created_time` varchar(255) NOT NULL,
+                    `updated_time` varchar(255) NOT NULL,
+                    `session_id` varchar(255) NOT NULL,
+                    PRIMARY KEY (`id`)
+                    ) ENGINE=InnoDB;";
     }
 
     public function checkUserData($type = '', $filter)
@@ -70,6 +69,12 @@ class App_users_model extends MY_Model {
         {
             return false;
         }
+    }
+
+    public function deleteExpenseList($id) {
+        $this->db->where('id', $id);
+        return $this->db->delete($this->table);
+        
     }
    
     public function saveAppUsers($userData='') 
@@ -149,22 +154,6 @@ class App_users_model extends MY_Model {
         } catch (Exception $e) {
             return null;
         }
-    }
-
-    public function getCurrentUser() {
-        $headers = $this->input->request_headers();
-        if (!isset($headers['Authorization'])) {
-            echo json_encode(['error' => 'Unauthorized']);
-            return;
-        }
-        $token = str_replace('Bearer ', '', $headers['Authorization']);
-        $userData = $this->validate_jwt($token);
-        return $userData;
-    }
-
-    public function getCurrentUserName() {
-      $user_name =  $this->getCurrentUser();
-      return $user_name->username;
     }
 
     public function test()

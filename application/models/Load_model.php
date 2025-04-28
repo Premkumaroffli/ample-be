@@ -23,7 +23,8 @@ class Load_model extends CI_Model {
             'expense_list',
             'expense',
             'companies',
-            'companies_license_users'
+            'companies_license_users',
+            'employee'
         ];
 
         foreach($models as $m)

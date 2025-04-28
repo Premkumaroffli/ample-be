@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Expense_tracker extends CI_Controller {
+class Employee extends CI_Controller {
 
 	public function __construct()
     {
@@ -28,43 +28,11 @@ class Expense_tracker extends CI_Controller {
 		}
 	}
 
-	public function getExpenselist()
+	public function getEmployeelist()
 	{
 		$where = array();
-		$current_user_name = $this->app_users->getCurrentUserName();
-		$where['created_by'] = $current_user_name;
-		$response = $this->expense_list->get_by($where);
-
-        $this->loader->sendresponse($response);
-	}
-
-	public function getExpense()
-	{
-		$where = array();
-		$current_user_name = $this->app_users->getCurrentUserName();
-		$where['created_by'] = $current_user_name;
-		$response = $this->expense->get_by($where);
-
-		foreach($response as $r)
-		{
-			$r->expense_name = $this->db->query("select title from expense_list where id = $r->ex_name")->row()->title;
-		}
-
-        $this->loader->sendresponse($response);
-	}
-
-	public function getExpenselistSB()
-	{
-		$current_user = $this->app_users->getCurrentUser();
-		$where = array();
-		$where['created_by'] = $current_user->username;
-		$response = $this->expense_list->get_by($where);
-
-		foreach($response as $r)
-		{
-			$r->name = $r->title;
-			$r->value = $r->id;
-		}
+		$where['created_by'] = $this->app_users->getCurrentUserName();
+		$response = $this->employee->get_by($where);
 
         $this->loader->sendresponse($response);
 	}
@@ -141,15 +109,15 @@ class Expense_tracker extends CI_Controller {
 
 	}
 
-	public function saveExpense()
+	public function saveEmployeeDetails()
 	{
         if($this->app_users->authenticate())
 		{
-			$codeData = $this->input->post();
+			$empData = $this->input->post();
 	
-			$id = isset($codeData['id']) ? $codeData['id'] : null;
+			$id = isset($empData['id']) ? $empData['id'] : null;
 	
-			$response = $this->expense->save($codeData, $id);
+			$response = $this->employee->save($empData, $id);
 	
 			$this->loader->sendresponse($response);
 		}
@@ -160,20 +128,16 @@ class Expense_tracker extends CI_Controller {
 
 	}
 
-	public function deleteExpense()
+    public function deleteEmployeeList($id)
     {
         if($this->app_users->authenticate())
         {
-            $postData = json_decode(file_get_contents('php://input'), true);
-            $id = isset($postData['id']) ? $postData['id'] : null;
-            $this->expense->delete($id);
+            $this->employee->delete($id);
             $this->loader->sendresponse($id);
         }
         else
         {
             $this->loader->sendresponse();
         }
-
     }
-
 }

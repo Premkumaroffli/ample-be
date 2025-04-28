@@ -43,15 +43,22 @@ class Modellist extends CI_Controller {
 
     public function getModellist()
     {
-        $modellist_id = $this->modellist->get();
-
-        foreach($modellist_id as $m)
+        if($this->app_users->authenticate())
         {
-            // $m->imagePreview = $m->image;
-            // $m->icon = $this->db->query("select name from maticons where ligature in($m->icon_id)")->row()->name;
-        }
+            $modellist_id = $this->modellist->get();
 
-        $this->loader->sendresponse($modellist_id);
+            foreach($modellist_id as $m)
+            {
+                // $m->imagePreview = $m->image;
+                // $m->icon = $this->db->query("select name from maticons where ligature in($m->icon_id)")->row()->name;
+            }
+
+            $this->loader->sendresponse($modellist_id);
+        }
+        else
+        {
+            $this->loader->sendresponse(null);
+        }
     }
 
     public function getModellistForUser()
