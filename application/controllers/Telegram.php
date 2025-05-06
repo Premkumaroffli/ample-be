@@ -16,6 +16,8 @@ class Telegram extends CI_Controller {
 	public function index() {
         $input = json_decode(file_get_contents('php://input'), true);
 
+		print_r($input);
+
         if (isset($input['message'])) {
             $chatId = $input['message']['chat']['id'];
             $messageText = $input['message']['text'];
