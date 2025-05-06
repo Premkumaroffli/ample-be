@@ -21,18 +21,26 @@ class Shortener extends CI_Controller {
 
     // Function to generate short code and store
     public function create_link() {
-        $originalUrl = $this->input->post('url');
-        $title = $this->input->post('title');
-        $code = substr(md5(time()), 0, 6); // simple random code
-
+        $input = json_decode(trim(file_get_contents("php://input")), true);
+        if (!$input || !isset($input['url']) || !isset($input['title'])) {
+            show_error("Invalid JSON", 400);
+        }
+    
+        $originalUrl = $input['url'];
+        $title = $input['title'];
+        $code = substr(md5(time()), 0, 6); // random short code
+    
         $data = [
             'short_code' => $code,
             'original_url' => $originalUrl,
             'title' => $title
         ];
-
+    
         $this->db->insert('movie_links', $data);
-
-        echo base_url('m/' . $code);
+    
+        echo json_encode([
+            'status' => 'success',
+            'short_url' => base_url('m/' . $code)
+        ]);
     }
 }
