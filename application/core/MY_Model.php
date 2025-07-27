@@ -71,11 +71,33 @@ class MY_Model extends CI_Model {
 
     public function check_save_by($array=[])
     {
-        foreach($array as $k => $v)
+        $table_column = $this->db->list_fields($this->table);
+        // print_r($table_column);
+        $filter_data = array_intersect_key($array, array_flip($table_column));
+
+        print_r($filter_data);
+
+        foreach($filter_data as $k => $v)
         {
+            var_dump($k, $v);
             $this->db->where($k, $v);
         }
-        $this->db->update($this->table, $this->data);
+        
+        $count = $this->db->get($this->table)->num_rows();
+
+        var_dump($count);
+
+        if($count > 0)
+        {
+            $this->db->update($this->table, $filter_data); 
+            return $this->db->affected_rows();
+        }
+        else
+        {
+            $this->db->set($filter_data);
+            $this->db->insert($this->table, $filter_data);
+            return $this->db->insert_id();
+        }
     }
 
     public function select_column($column='') {

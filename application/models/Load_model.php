@@ -24,7 +24,11 @@ class Load_model extends CI_Model {
             'expense',
             'companies',
             'companies_license_users',
-            'employee'
+            'employee',
+            'acc_account_type',
+            'acc_cash_purpose',
+            'acc_orders'
+
         ];
 
         foreach($models as $m)

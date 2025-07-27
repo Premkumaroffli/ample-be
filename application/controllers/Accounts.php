@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Expense_tracker extends CI_Controller {
+class Accounts extends CI_Controller {
 
 	public function __construct()
     {
@@ -175,5 +175,139 @@ class Expense_tracker extends CI_Controller {
         }
 
     }
+
+	// account type
+
+	public function saveAccountType()
+	{
+        if($this->app_users->authenticate())
+		{
+			$accData = $this->input->post();
+	
+			$id = isset($accData['id']) ? $accData['id'] : null;
+	
+			$response = $this->acc_account_type->save($accData, $id);
+	
+			$this->loader->sendresponse($response);
+		}
+		else
+        {
+            $this->loader->sendresponse();
+        }
+
+	}
+
+	public function getAccountTypeList()
+	{
+		if($this->app_users->authenticate())
+		{
+			$accData = $this->acc_account_type->get();
+			
+			$this->loader->sendresponse($accData);
+
+		}
+		else
+		{
+            $this->loader->sendresponse();
+		}
+	}
+	
+	public function getAccountType($id)
+    {
+        if($this->app_users->authenticate())
+        {
+			$accData = $this->acc_account_type->get($id);
+			$this->loader->sendresponse($accData);
+        }
+        else
+        {
+            $this->loader->sendresponse();
+        }
+    }
+
+    public function deleteAccountType($id)
+    {
+        if($this->app_users->authenticate())
+        {
+            $this->acc_account_type->delete($id);
+            $this->loader->sendresponse($id);
+        }
+        else
+        {
+            $this->loader->sendresponse();
+        }
+    }
+
+	// account type
+
+	// cash purpose
+
+	public function saveCashPurpose()
+	{
+        if($this->app_users->authenticate())
+		{
+			$accData = $this->input->post();
+	
+			$id = isset($accData['id']) ? $accData['id'] : null;
+	
+			$response = $this->acc_cash_purpose->save($accData, $id);
+	
+			$this->loader->sendresponse($response);
+		}
+		else
+        {
+            $this->loader->sendresponse();
+        }
+
+	}
+
+	public function getCashPurposeList()
+	{
+		if($this->app_users->authenticate())
+		{
+			$accData = $this->acc_cash_purpose->get();
+
+			foreach($accData as $acc)
+			{
+				$acc->account_type = $this->db->query("select name from acc_account_type where id = $acc->account_type_id")->row()->name;
+			}
+			
+			$this->loader->sendresponse($accData);
+
+		}
+		else
+		{
+            $this->loader->sendresponse();
+		}
+	}
+	
+	public function getCashPurpose($id)
+    {
+        if($this->app_users->authenticate())
+        {
+			$accData = $this->acc_cash_purpose->get($id);
+			$this->loader->sendresponse($accData);
+        }
+        else
+        {
+            $this->loader->sendresponse();
+        }
+    }
+
+    public function deleteCashPurpose($id)
+    {
+        if($this->app_users->authenticate())
+        {
+            $this->acc_cash_purpose->delete($id);
+            $this->loader->sendresponse($id);
+        }
+        else
+        {
+            $this->loader->sendresponse();
+        }
+    }
+
+	// cash purpose
+
 
 }
