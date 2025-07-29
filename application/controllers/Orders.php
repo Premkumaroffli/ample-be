@@ -99,11 +99,11 @@ class Orders extends CI_Controller {
 			$stateData->series = array();
 			$stateData->labels = array();
 
-			$statewise = $this->db->query("select count(id) as count_id, state from acc_orders group by state limit 5")->result();
+			$statewise = $this->db->query("select count(id) as count_id, state from acc_orders group by state")->result();
 
 			foreach($statewise as $state)
 			{
-				$stateData->series[] =  $state->count_id;
+				$stateData->series[] =  (int)$state->count_id;
 				$stateData->labels[] =  $state->state;
 			}
 
