@@ -27,7 +27,8 @@ class Load_model extends CI_Model {
             'employee',
             'acc_account_type',
             'acc_cash_purpose',
-            'acc_orders'
+            'acc_orders',
+            'acc_income_expense'
 
         ];
 

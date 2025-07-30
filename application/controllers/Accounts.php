@@ -280,6 +280,28 @@ class Accounts extends CI_Controller {
             $this->loader->sendresponse();
 		}
 	}
+
+	public function getCashPurposeSB($id)
+	{
+		if($this->app_users->authenticate())
+		{
+			$filter['account_type_id'] = $id;
+
+			$accData = $this->acc_cash_purpose->get_by($filter);
+
+			foreach($accData as $acc)
+			{
+				$acc->account_type = $this->db->query("select name from acc_account_type where id = $acc->account_type_id")->row()->name;
+			}
+			
+			$this->loader->sendresponse($accData);
+
+		}
+		else
+		{
+            $this->loader->sendresponse();
+		}
+	}
 	
 	public function getCashPurpose($id)
     {
