@@ -54,8 +54,10 @@ class MY_Model extends CI_Model {
     }
 
     public function save($data, $id = NULL) {
+        $data = (array)$data;
         $table_column = $this->db->list_fields($this->table);
         $filter_data = array_intersect_key($data, array_flip($table_column));
+
         if ($id == NULL) {
             $filter_data = $this->_run_before_callbacks('insert', $filter_data);
             $this->db->set($filter_data);
@@ -65,37 +67,39 @@ class MY_Model extends CI_Model {
             $filter_data = $this->_run_before_callbacks('update', $filter_data);
             $this->db->where($this->primary_key, $id);
             $this->db->update($this->table, $filter_data);
-            return $this->db->affected_rows();
+            return $id;
         }
     }
 
-    public function check_save_by($array=[])
+    public function check_save_by($filter_array=[], $insert_data=[])
     {
         $table_column = $this->db->list_fields($this->table);
-        // print_r($table_column);
-        $filter_data = array_intersect_key($array, array_flip($table_column));
 
-        print_r($filter_data);
+        $filter_data = array_intersect_key($filter_array, array_flip($table_column));
+        $insert_filter_data = array_intersect_key($insert_data, array_flip($table_column));
 
         foreach($filter_data as $k => $v)
         {
-            var_dump($k, $v);
             $this->db->where($k, $v);
         }
         
         $count = $this->db->get($this->table)->num_rows();
 
-        var_dump($count);
-
         if($count > 0)
         {
-            $this->db->update($this->table, $filter_data); 
+            $this->db->query("SET SQL_SAFE_UPDATES = 0");
+            foreach($filter_data as $k => $v)
+            {
+                $this->db->where($k, $v);
+            }
+            $this->db->update($this->table, $insert_filter_data);
+            $this->db->query("SET SQL_SAFE_UPDATES = 1");
             return $this->db->affected_rows();
         }
         else
         {
-            $this->db->set($filter_data);
-            $this->db->insert($this->table, $filter_data);
+            $this->db->set($insert_filter_data);
+            $this->db->insert($this->table, $insert_filter_data);
             return $this->db->insert_id();
         }
     }

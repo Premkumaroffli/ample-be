@@ -78,9 +78,8 @@ class App_users_model extends MY_Model {
         $hash_password = $this->hash_password($userData->password, $salt);
         $userData->salt = $salt;
         $userData->hpassword = $hash_password;
-        
-        $id = $this->db->insert($this->table, $userData);
 
+        $id = $this->db->insert($this->table, $userData);
         return $id;
     }
 

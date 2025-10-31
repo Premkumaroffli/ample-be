@@ -28,9 +28,25 @@ class Load_model extends CI_Model {
             'acc_account_type',
             'acc_cash_purpose',
             'acc_orders',
-            'acc_income_expense'
-
+            'acc_income_expense',
+            'acc_investment',
+            'acc_investment_calculate',
+            'states',
+            'customers',
+            'invoices',
+            'invoice_items',
+            'services',
+            'items',
+            'catagory',
+            'income_expense',
         ];
+
+
+//   `created_by` varchar(255) NOT NULL,
+//   `updated_by` varchar(255) NOT NULL,
+//   `created_time` varchar(255) NOT NULL,
+//   `updated_time` varchar(255) NOT NULL,
+//   `session_id` varchar(255) NOT NULL
 
         foreach($models as $m)
         {
