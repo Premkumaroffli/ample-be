@@ -34,15 +34,21 @@ class Income_expense extends CI_Controller {
 	{
 		if($this->app_users->authenticate())
 		{
-			$inexData = $this->income_expense->get();
+			$postData = (object)$this->input->post();
+
+            $data = new StdClass;
+
+            $data->total_length = $this->income_expense->getIncomeExpList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize);
+
+			$data->income_expense_data = $this->income_expense->getIncomeExpList(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize);
             
-			foreach($inexData as $inex)
+			foreach($data->income_expense_data as $inex)
 			{
 				$inex->category_name = $this->db->query("select name from catagory where id = $inex->category_id")->row()->name;
 				$inex->t_type = ucfirst($inex->type);
 			}
 			
-			$this->loader->sendresponse($inexData);
+			$this->loader->sendresponse($data);
 
 		}
 		else

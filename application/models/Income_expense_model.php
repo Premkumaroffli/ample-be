@@ -33,4 +33,52 @@ class Income_expense_model extends MY_Model {
         );";
     }
 
+    public function getIncomeExpList($type, $postData, $pageIndex, $offset, $pageSize)
+    {
+
+        if($type)
+        {
+            $this->db->select("count(id) as id");
+        }
+        else
+        {
+            $this->db->select("*");
+        }
+
+        if(isset($postData->from_date) && $postData->from_date !== 'null' &&  $postData->from_date !== 'undefined' && isset($postData->to_date) && $postData->to_date !=='null'  &&  $postData->to_date !== 'undefined')
+        {
+            $this->db->where("date between '$postData->from_date' and '$postData->to_date'");
+        }
+        
+        if(isset($postData->type) && $postData->type !== 'null'  &&  $postData->type !== 'undefined')
+        {
+            $this->db->where("type = '$postData->type'");
+        }
+        
+        if(isset($postData->category_id) && $postData->category_id !== 'null'  &&  $postData->category_id !== 'undefined')
+        {
+            $this->db->where("category_id = '$postData->category_id'");
+        }
+        
+        if(isset($postData->payment_method) && $postData->payment_method !== 'null'  &&  $postData->payment_method !== 'undefined')
+        {
+            $this->db->where("payment_method = '$postData->payment_method'");
+        }
+
+        $this->db->from('income_expense');
+ 
+        if($type)
+        {
+           $data = $this->db->count_all_results();
+        }
+        else
+        {
+            $this->db->limit($pageSize, $offset);
+            
+            $data = $this->db->get()->result();
+        }
+
+        return $data;
+    }
+
 }

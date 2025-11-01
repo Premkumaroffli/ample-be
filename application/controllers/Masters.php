@@ -330,5 +330,17 @@ class Masters extends CI_Controller {
 
         $this->loader->sendresponse($response);
 	}
+    
+	public function NewCatagorySB()
+	{
+		$response = $this->db->query("select id, name from catagory where status = 1")->result();
+
+        foreach($response as $res)
+        {
+            $res->value = $res->id;
+        }
+
+        $this->loader->sendresponse($response);
+	}
 
 }
