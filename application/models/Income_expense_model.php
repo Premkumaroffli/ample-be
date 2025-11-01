@@ -31,6 +31,8 @@ class Income_expense_model extends MY_Model {
         updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         session_id VARCHAR(255) NOT NULL
         );";
+
+        $quries[] = "ALTER TABLE `income_expense` ADD `trans_no` INT NOT NULL AFTER `date`;";
     }
 
     public function getIncomeExpList($type, $postData, $pageIndex, $offset, $pageSize)
@@ -66,6 +68,8 @@ class Income_expense_model extends MY_Model {
         }
 
         $this->db->from('income_expense');
+
+        $this->db->order_by('trans_no', 'desc');
  
         if($type)
         {
@@ -74,7 +78,7 @@ class Income_expense_model extends MY_Model {
         else
         {
             $this->db->limit($pageSize, $offset);
-            
+
             $data = $this->db->get()->result();
         }
 

@@ -10,6 +10,24 @@ class Income_expense extends CI_Controller {
         $this->load->model('Load_model', 'loader');
 		$this->loader->loadModels();
     }
+    
+    
+	public function getMaxTrans()
+	{
+		if($this->app_users->authenticate())
+		{
+			$trans_no = $this->db->query("select max(trans_no) as trans_no from income_expense")->row()->trans_no;
+
+            $trans_no = (int)$trans_no + 1;
+			
+			$this->loader->sendresponse($trans_no);
+
+		}
+		else
+		{
+            $this->loader->sendresponse();
+		}
+	}
 
 	public function saveIncomeExp()
 	{
