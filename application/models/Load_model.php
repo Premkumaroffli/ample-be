@@ -54,7 +54,7 @@ class Load_model extends CI_Model {
         }
     }
 
-    public function sendresponse($data)
+    public function sendresponse($data=null)
     { 
         $response['status'] = 'success';
         $response['result'] = $data;

@@ -86,9 +86,9 @@ class Income_expense extends CI_Controller {
 
             $data = new StdClass;
 
-            $data->total_length = $this->income_expense->getIncomeExpList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize);
+            $data->total_length = $this->income_expense->getIncomeExpList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
 
-			$data->income_expense_data = $this->income_expense->getIncomeExpList(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize);
+			$data->income_expense_data = $this->income_expense->getIncomeExpList(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize, $postData->isMobile);
             
 			foreach($data->income_expense_data as $inex)
 			{

@@ -314,9 +314,17 @@ class Masters extends CI_Controller {
     
 	public function getCatagorylist()
 	{
-		$response = $this->catagory->get();
+        $data = new StdClass;
 
-        $this->loader->sendresponse($response);
+        $postData = (object)$this->input->post();
+
+        $data->total_length = $this->catagory->getcatagoryList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
+
+        $data->total_length = (int)$data->total_length;
+
+        $data->catagory_list = $this->catagory->getcatagoryList(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize, $postData->isMobile);
+
+        $this->loader->sendresponse($data);
 	}
     
 	public function CatagorySB($trans_type)

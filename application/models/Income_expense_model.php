@@ -35,9 +35,8 @@ class Income_expense_model extends MY_Model {
         $quries[] = "ALTER TABLE `income_expense` ADD `trans_no` INT NOT NULL AFTER `date`;";
     }
 
-    public function getIncomeExpList($type, $postData, $pageIndex, $offset, $pageSize)
+    public function getIncomeExpList($type, $postData, $pageIndex, $offset, $pageSize, $isMobile)
     {
-
         if($type)
         {
             $this->db->select("count(id) as id");
@@ -77,7 +76,11 @@ class Income_expense_model extends MY_Model {
         }
         else
         {
-            $this->db->limit($pageSize, $offset);
+            if(!$isMobile)
+            {
+                
+                $this->db->limit($pageSize, $offset);
+            }
 
             $data = $this->db->get()->result();
         }
