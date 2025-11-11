@@ -47,33 +47,42 @@ class Partner_share extends CI_Controller {
         }
 
 	}
-	
     
-	public function getPartnerShareListdata()
+	public function getPartnerSharedata()
 	{
         $data = new StdClass;
 
         $postData = (object)$this->input->post();
 
-        $inc_exp_data = $this->db->query("select sum(amount) as amount, type from partner_share group by type")->result();
+        $inc_exp_data = $this->db->query("select (select name from customers where id = partner_id) as name, amount from partner_share order by id desc limit 4")->result();
 
-		$data->total_income = 0;
-		$data->total_expense = 0;
-		$data->total_available = 0;
-
-		foreach($inc_exp_data as $inc_exp)
+		foreach($inc_exp_data as $d)
 		{
-			if($inc_exp->type == 'income')
-			{
-				$data->total_income += $inc_exp->amount;
-			}
-			else
-			{
-				$data->total_expense += $inc_exp->amount;
-			}
+			$d->amount = (int)($d->amount);
 		}
 
-		$data->total_available = $data->total_income - $data->total_expense;
+        $this->loader->sendresponse($inc_exp_data);
+	}
+    
+	public function getPartnerSharedataList()
+	{
+        $data = new StdClass;
+
+        $postData = (object)$this->input->post();
+
+		$data->partner_list = $this->db->query("select (select name from customers where id = partner_id) as name, partner_id as value, sum(amount) as total_amount from partner_share group by partner_id order by id desc")->result();
+
+		foreach($data->partner_list as $d)
+		{
+			$d->name = $d->name.' - '.(int)($d->total_amount);
+		}
+
+        $data->inc_exp_data = $this->db->query("select (select name from customers where id = partner_id) as name, partner_id, amount, created_time from partner_share order by id desc")->result();
+
+		foreach($data->inc_exp_data as $d)
+		{
+			$d->amount = (int)($d->amount);
+		}
 
         $this->loader->sendresponse($data);
 	}

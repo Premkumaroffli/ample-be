@@ -73,7 +73,9 @@ class Income_expense extends CI_Controller {
 			}
 		}
 
-		$data->total_available = $data->total_income - $data->total_expense;
+		$data->taken_amount = $this->db->query("select sum(amount) as amount from partner_share")->row()->amount;
+
+		$data->total_available = $data->total_income - $data->total_expense - $data->taken_amount;
 
         $this->loader->sendresponse($data);
 	}
