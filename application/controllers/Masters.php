@@ -213,17 +213,17 @@ class Masters extends CI_Controller {
         $this->loader->sendresponse($data);
 	}
     
-	public function CustomersSB()
-	{
-		$response = $this->customers->get();
+	// public function CustomersSB()
+	// {
+	// 	$response = $this->customers->get();
 
-        foreach($response as $res)
-        {
-            $res->value = $res->id;
-        }
+    //     foreach($response as $res)
+    //     {
+    //         $res->value = $res->id;
+    //     }
 
-        $this->loader->sendresponse($response);
-	}
+    //     $this->loader->sendresponse($response);
+	// }
 
 	public function saveService()
 	{
@@ -441,12 +441,15 @@ class Masters extends CI_Controller {
     
 	public function FabricColorSB()
 	{
-		$response = $this->db->query("select id, name from fabric_color where status = 1")->result();
+		$response = $this->db->query("select id as value, name from fabric_color where status = 1")->result();
 
-        foreach($response as $res)
-        {
-            $res->value = $res->id;
-        }
+
+        $this->loader->sendresponse($response);
+	}
+    
+	public function CustomersSB()
+	{
+		$response = $this->db->query("select id as value, name from customers")->result();
 
         $this->loader->sendresponse($response);
 	}

@@ -42,6 +42,7 @@ class Load_model extends CI_Model {
             'fabric_po',
             'fabric',
             'fabric_color',
+            'partner_share',
         ];
 
 
