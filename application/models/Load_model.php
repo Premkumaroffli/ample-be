@@ -39,6 +39,9 @@ class Load_model extends CI_Model {
             'items',
             'catagory',
             'income_expense',
+            'fabric_po',
+            'fabric',
+            'fabric_color',
         ];
 
 

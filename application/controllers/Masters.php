@@ -200,9 +200,17 @@ class Masters extends CI_Controller {
     
 	public function getCustomerslist()
 	{
-		$response = $this->customers->get();
+        $data = new StdClass;
 
-        $this->loader->sendresponse($response);
+        $postData = (object)$this->input->post();
+
+        $data->total_length = $this->customers->getcustomerList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
+
+        $data->total_length = (int)$data->total_length;
+
+        $data->customer_list = $this->customers->getcustomerList(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize, $postData->isMobile);
+
+        $this->loader->sendresponse($data);
 	}
     
 	public function CustomersSB()
@@ -342,6 +350,98 @@ class Masters extends CI_Controller {
 	public function NewCatagorySB()
 	{
 		$response = $this->db->query("select id, name from catagory where status = 1")->result();
+
+        foreach($response as $res)
+        {
+            $res->value = $res->id;
+        }
+
+        $this->loader->sendresponse($response);
+	}
+
+    public function saveFabric()
+	{
+        if($this->app_users->authenticate())
+		{
+			$itemData = $this->input->post();
+	
+			$id = isset($itemData['id']) ? $itemData['id'] : null;
+	
+			$response = $this->fabric->save($itemData, $id);
+	
+			$this->loader->sendresponse($response);
+		}
+		else
+        {
+            $this->loader->sendresponse();
+        }
+
+	}
+    
+	public function getFabriclist()
+	{
+        $data = new StdClass;
+
+        $postData = (object)$this->input->post();
+
+        $data->total_length = $this->fabric->getFabriclist(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
+
+        $data->total_length = (int)$data->total_length;
+
+        $data->fabric_list = $this->fabric->getFabriclist(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize, $postData->isMobile);
+
+        $this->loader->sendresponse($data);
+	}
+    
+	public function FabricSB()
+	{
+		$response = $this->db->query("select id, name from fabric where  status = 1")->result();
+
+        foreach($response as $res)
+        {
+            $res->value = $res->id;
+        }
+
+        $this->loader->sendresponse($response);
+	}
+    
+    public function saveFabricColor()
+	{
+        if($this->app_users->authenticate())
+		{
+			$itemData = $this->input->post();
+	
+			$id = isset($itemData['id']) ? $itemData['id'] : null;
+	
+			$response = $this->fabric_color->save($itemData, $id);
+	
+			$this->loader->sendresponse($response);
+		}
+		else
+        {
+            $this->loader->sendresponse();
+        }
+
+	}
+    
+	public function getFabricColorlist()
+	{
+        $data = new StdClass;
+
+        $postData = (object)$this->input->post();
+
+        $data->total_length = $this->fabric_color->getFabricColorlist(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
+
+        $data->total_length = (int)$data->total_length;
+
+        $data->fabric_list = $this->fabric_color->getFabricColorlist(false, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize), $postData->pageSize, $postData->isMobile);
+
+        $this->loader->sendresponse($data);
+	}
+    
+	public function FabricColorSB()
+	{
+		$response = $this->db->query("select id, name from fabric_color where status = 1")->result();
 
         foreach($response as $res)
         {

@@ -37,4 +37,47 @@ class Customers_model extends MY_Model {
     );";
     }
 
+    public function getcustomerList($type, $postData, $pageIndex, $offset, $pageSize, $isMobile)
+    {
+
+        if($type)
+        {
+            $this->db->select("count(id) as id");
+        }
+        else
+        {
+            $this->db->select("*");
+        }
+        
+        if(isset($postData->customer_id) && $postData->customer_id !== 'null'  &&  $postData->customer_id !== 'undefined')
+        {
+            $this->db->where("id = '$postData->customer_id'");
+        }
+        
+        // if(isset($postData->status) && $postData->status !== 'null'  &&  $postData->status !== 'undefined')
+        // {
+        //     $this->db->where("status = '$postData->status'");
+        // }
+
+        $this->db->from('customers');
+
+        $this->db->order_by('id', 'desc');
+ 
+        if($type)
+        {
+           $data = $this->db->count_all_results();
+        }
+        else
+        {
+            if($isMobile == false)
+            {
+                $this->db->limit($pageSize, $offset);
+            }
+
+            $data = $this->db->get()->result();
+        }
+
+        return $data;
+    }
+
 }

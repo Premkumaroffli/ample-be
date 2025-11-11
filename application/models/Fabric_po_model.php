@@ -1,8 +1,8 @@
 <?php
 
-class Items_model extends MY_Model {
+class Fabric_po_model extends MY_Model {
     
-    public $table = 'items';
+    public $table = 'fabric_po';
     public $primary_key = 'id';
 
     private $key = "ample&$@";
@@ -17,7 +17,7 @@ class Items_model extends MY_Model {
     {
         $quries = array();
 
-        $quries[] = "CREATE TABLE items ( 
+        $quries[] = "CREATE TABLE fabric_po ( 
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL, 
         status tinyint NOT NULL, 
