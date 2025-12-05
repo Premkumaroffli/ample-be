@@ -51,33 +51,41 @@ class Income_expense extends CI_Controller {
     
 	public function getIncomeExpListdata()
 	{
-        $data = new StdClass;
-
-        $postData = (object)$this->input->post();
-
-        $inc_exp_data = $this->db->query("select sum(amount) as amount, type from income_expense group by type")->result();
-
-		$data->total_income = 0;
-		$data->total_expense = 0;
-		$data->total_available = 0;
-
-		foreach($inc_exp_data as $inc_exp)
+        if($this->app_users->authenticate())
 		{
-			if($inc_exp->type == 'income')
+			$data = new StdClass;
+
+			$postData = (object)$this->input->post();
+
+			$inc_exp_data = $this->db->query("select sum(amount) as amount, type from income_expense group by type")->result();
+
+			$data->total_income = 0;
+			$data->total_expense = 0;
+			$data->total_available = 0;
+
+			foreach($inc_exp_data as $inc_exp)
 			{
-				$data->total_income += $inc_exp->amount;
+				if($inc_exp->type == 'income')
+				{
+					$data->total_income += $inc_exp->amount;
+				}
+				else
+				{
+					$data->total_expense += $inc_exp->amount;
+				}
 			}
-			else
-			{
-				$data->total_expense += $inc_exp->amount;
-			}
+
+			$data->taken_amount = $this->db->query("select sum(amount) as amount from partner_share")->row()->amount;
+
+			$data->total_available = $data->total_income - $data->total_expense - $data->taken_amount;
+
+			$this->loader->sendresponse($data);
+			
 		}
-
-		$data->taken_amount = $this->db->query("select sum(amount) as amount from partner_share")->row()->amount;
-
-		$data->total_available = $data->total_income - $data->total_expense - $data->taken_amount;
-
-        $this->loader->sendresponse($data);
+		else
+		{
+            $this->loader->sendresponse();
+		}
 	}
 
 	public function getIncomeExpList()
