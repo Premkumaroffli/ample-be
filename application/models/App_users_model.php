@@ -121,7 +121,9 @@ class App_users_model extends MY_Model {
             $jwt = new JWT();
             try {
                 $decoded = $jwt->decode($token, $this->key, true);
-                return (object) $decoded;
+                $decoded =  (object) $decoded;
+                $this->switch_db($decoded->database);
+                return $decoded;
             } catch (Exception $e) {
                 $this->output
                      ->set_content_type('application/json')
@@ -137,6 +139,43 @@ class App_users_model extends MY_Model {
                  ->set_output(json_encode(array('error' => 'Unauthorized')));
             return false;
         }
+    }
+
+    public function switch_db($db_name) {
+        // Get Global Instance (Crucial Step)
+        $CI =& get_instance();
+
+        // Close current connection
+        if (isset($CI->db)) {
+            $CI->db->close();
+        }
+
+        // New Config
+        $config['hostname'] = 'localhost';
+        $config['username'] = 'root';
+        $config['password'] = '';
+        $config['database'] = $db_name;
+        $config['dbdriver'] = 'mysqli';
+        $config['pconnect'] = FALSE; // Must be FALSE
+        $config['db_debug'] = (ENVIRONMENT !== 'production');
+        $config['char_set'] = 'utf8';
+        $config['dbcollat'] = 'utf8_general_ci';
+
+        // Connect
+        $new_db = $CI->load->database($config, TRUE);
+
+        // Update Controller's DB
+        $CI->db = $new_db;
+
+        // Update ALL loaded Models
+        foreach ($CI as $key => $object) {
+            if (is_object($object) && isset($object->db)) {
+                $CI->$key->db = $new_db;
+            }
+        }
+        
+        // Update THIS model
+        $this->db = $new_db;
     }
 
     public function validate_jwt($token) {

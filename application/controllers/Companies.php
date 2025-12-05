@@ -215,6 +215,7 @@ class Companies extends CI_Controller {
             foreach($companies_list as $cmp)
             {
                 $cmp->access_blob = unserialize($cmp->access_blob);
+                // $cmp->name = $this->db->query("select name from app_users where email = '$cmp->email'")->row()->name;
             }
             $this->loader->sendresponse($companies_list);
         }

@@ -15,6 +15,7 @@ class Load_model extends CI_Model {
         $models = [
             'app_users',
             'app_users_list',
+            'app_users_details',
             'code_details',
             'modellist',
             'modelset',

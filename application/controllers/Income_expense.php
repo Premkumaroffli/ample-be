@@ -97,6 +97,8 @@ class Income_expense extends CI_Controller {
 				$inex->category_name = $this->db->query("select name from catagory where id = $inex->category_id")->row()->name;
 				$inex->t_type = ucfirst($inex->type);
 			}
+
+			$data->db = $this->db->database;
 			
 			$this->loader->sendresponse($data);
 

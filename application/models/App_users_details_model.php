@@ -1,8 +1,8 @@
 <?php
 
-class App_users_list_model extends MY_Model {
+class App_users_details_model extends MY_Model {
     
-    public $table = 'app_users_list';
+    public $table = 'app_users_details';
     public $primary_key = 'id';
 
     public function __construct() {
@@ -15,9 +15,23 @@ class App_users_list_model extends MY_Model {
     {
         $quries = array();
 
-        $quries[] = "CREATE TABLE `app_users_list` (`id` INT NOT NULL AUTO_INCREMENT , `app_user_id` VARCHAR(255) NOT NULL ,`username` VARCHAR(255) NOT NULL , `modellist_id` varchar(255) NOT NULL, `modelheader_id` varchar(255) NOT NULL, `modelset_id`varchar(255) NOT NULL, `modelinner_id` varchar(255) NOT NULL, `created_by` varchar(255) NOT NULL, `updated_by` varchar(255) NOT NULL, `created_time` varchar(255) NOT NULL, `updated_time` varchar(255) NOT NULL, `session_id` varchar(255) NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-        
-        $quries[] = "ALTER TABLE app_users_list ADD data_base varchar(255)not null after username;";
+        $quries[] = "CREATE TABLE `app_users_details` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `app_user_id` varchar(255) NOT NULL,
+                `user_role` varchar(255) NOT NULL,
+                `display_name` varchar(255) NOT NULL,
+                `email` varchar(255) NOT NULL,
+                `phone_no` varchar(255) NOT NULL,
+                `profile_url` varchar(255) NOT NULL,
+                `user_theme` varchar(255) NOT NULL,
+                `created_by` varchar(255) NOT NULL,
+                `updated_by` varchar(255) NOT NULL,
+                `created_time` varchar(255) NOT NULL,
+                `updated_time` varchar(255) NOT NULL,
+                `session_id` varchar(255) NOT NULL,
+                PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB;"
+            ;
     }
 
     public function test()

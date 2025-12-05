@@ -57,6 +57,7 @@ class Auth extends CI_Controller {
                 $id = $this->app_users->saveAppUsers($userData);
                 $newUser['app_user_id'] = $id;
                 $this->app_users_list->save($newUser);
+                $this->app_users_details->save($newUser);
                 $response['log'] = true;
                 $response['status'] = 'Registration SucessFully';
                 $response['result'] = $id;
@@ -124,6 +125,8 @@ class Auth extends CI_Controller {
     {
         $loginData = json_decode(file_get_contents('php://input'), true);
         $fetchUser = $this->app_users->get_by(array('email' => $loginData['email']));
+        $datafetchUser = $this->app_users_list->get_by(array('app_user_id' => $fetchUser[0]->id));
+        $database = $datafetchUser[0]->data_base;
         $fetchUser = (object)($fetchUser[0]);
         $jwt = new JWT();
         $token = array(
@@ -132,6 +135,7 @@ class Auth extends CI_Controller {
             'username' => $fetchUser->username,
             'phone_no' => $fetchUser->phone_no,
             'company_id' => $loginData['company_id'],
+            'database' =>  $database,
             'exp' => time() + 5000  // Token expiry
         );
 
@@ -153,6 +157,8 @@ class Auth extends CI_Controller {
         $token = str_replace('Bearer ', '', $headers['Authorization']);
 
         $userData = $this->app_users->validate_jwt($token);
+
+        $user_details = $this->db->query("select * from app_users_details where id = $userData")->result();
 
         if ($userData) {
             $this->loader->sendresponse($userData);
