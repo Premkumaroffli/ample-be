@@ -152,7 +152,7 @@ class App_users_model extends MY_Model {
 
         // New Config
         $config['hostname'] = 'localhost';
-        $config['username'] = 'root';
+        $config['username'] = $db_name;
         $config['password'] = '';
         $config['database'] = $db_name;
         $config['dbdriver'] = 'mysqli';
