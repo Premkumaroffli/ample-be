@@ -44,6 +44,7 @@ class Load_model extends CI_Model {
             'fabric',
             'fabric_color',
             'partner_share',
+            'return_claim_folders',
         ];
 
 
