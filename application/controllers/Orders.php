@@ -285,45 +285,88 @@ class Orders extends CI_Controller {
 
 	public function DownloadFolderZip($id) {
 
-    if($this->app_users->authenticate()) {
-        
-        $folder_id = $id; // Get ID from URL
-        
-        // 1. Get folder details from DB to find the path
-        // Assuming you have a 'get_by_id' method
-        $folder = $this->return_claim_folders->get($folder_id);
-        
-        if (empty($folder)) {
-            show_404();
-            return;
-        }
+		if($this->app_users->authenticate()) {
+			
+			$folder_id = $id; // Get ID from URL
+			
+			// 1. Get folder details from DB to find the path
+			// Assuming you have a 'get_by_id' method
+			$folder = $this->return_claim_folders->get($folder_id);
+			
+			if (empty($folder)) {
+				show_404();
+				return;
+			}
 
-        $folder_path = $folder[0]->upload_path; // e.g., ./uploads/.../Site-Visit-A/
+			$folder_path = $folder[0]->upload_path; // e.g., ./uploads/.../Site-Visit-A/
 
-		print_r($folder_path);
+			print_r($folder_path);
 
-        // 2. Check if folder exists on server
-        if (!is_dir($folder_path)) {
-            echo "Folder not found on server.";
-            return;
-        }
+			// 2. Check if folder exists on server
+			if (!is_dir($folder_path)) {
+				echo "Folder not found on server.";
+				return;
+			}
 
-        // 3. Load Zip Library
-        $this->load->library('zip');
+			// 3. Load Zip Library
+			$this->load->library('zip');
 
-        // 4. Read the directory
-        // FALSE = Do not maintain the full directory structure inside the zip
-        // TRUE = Maintain structure. Usually, for downloads, you want FALSE so files are at the root of the zip.
-        $this->zip->read_dir($folder_path, FALSE); 
+			// 4. Read the directory
+			// FALSE = Do not maintain the full directory structure inside the zip
+			// TRUE = Maintain structure. Usually, for downloads, you want FALSE so files are at the root of the zip.
+			$this->zip->read_dir($folder_path, FALSE); 
 
-        // 5. Download
-        // This automatically sets headers and stops script execution
-        $zip_name = $folder->folder_name . '.zip';
+			// 5. Download
+			// This automatically sets headers and stops script execution
+			$zip_name = $folder->folder_name . '.zip';
 
-		print_r($zip_name);
-        $this->zip->download($zip_name);
-    }
+			print_r($zip_name);
+			$this->zip->download($zip_name);
+		}
 
-}
+	}
+
+	public function DeleteReturnClaim($folder_id) {
+		if($this->app_users->authenticate())
+		{
+			$folder = $this->return_claim_folders->get($folder_id);
+
+			if (empty($folder)) {
+				$this->loader->sendresponse(['status' => 'error', 'message' => 'Folder not found']);
+				return;
+			}
+
+			$dir_path = $folder[0]->upload_path;
+
+			// 3. SAFETY CHECK: Ensure path is within 'uploads'
+			// This prevents hackers from deleting system files like '../../index.php'
+			if (strpos($dir_path, './uploads/') !== 0) {
+				$this->loader->sendresponse(['status' => 'error', 'message' => 'Invalid path security check']);
+				return;
+			}
+
+			// 4. Delete Physical Files & Directory
+			if (is_dir($dir_path)) {
+				// CodeIgniter Helper: 'delete_files'
+				// Param 2 (true) = Recursive (delete everything inside)
+				$this->load->helper('file');
+				delete_files($dir_path, true); 
+				
+				// Remove the now-empty directory
+				rmdir($dir_path); 
+			}
+
+			// 5. Delete Database Record
+			$this->return_claim_folders->delete($folder_id);
+
+			$response = 'success';
+
+			$this->loader->sendresponse($response);
+		}
+		else
+		{
+
+		}
+	}
 
 }
