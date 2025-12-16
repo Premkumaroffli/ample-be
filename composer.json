@@ -12,7 +12,10 @@
 	},
 	"require": {
 		"php": ">=5.3.7",
-		"phpoffice/phpspreadsheet": "1.29"
+		"phpoffice/phpspreadsheet": "1.29",
+		"smalot/pdfparser": "*",
+		"setasign/fpdi": "*",
+		"setasign/fpdf": "*"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"
