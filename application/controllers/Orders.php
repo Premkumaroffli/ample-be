@@ -15,19 +15,71 @@ class Orders extends CI_Controller {
 		$this->loader->loadModels();
     }
 
+
+	private function get_specific_sheet_data($filepath, $targetSheetName) {
+		// Determine file type
+		$inputFileType = \PhpOffice\PhpSpreadsheet\IOFactory::identify($filepath);
+		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($inputFileType);
+
+		// If it's a CSV, we can't select sheets by name, we just read it.
+		// If it's Excel (Xlsx), we try to load the specific sheet.
+		if ($inputFileType == 'Csv') {
+			$spreadsheet = $reader->load($filepath);
+		} else {
+			// For Excel, we list sheet names first to check if ours exists
+			$sheetNames = $reader->listWorksheetNames($filepath);
+			
+			if (in_array($targetSheetName, $sheetNames)) {
+				// Found it! Load ONLY this sheet
+				$reader->setLoadSheetsOnly($targetSheetName);
+				$spreadsheet = $reader->load($filepath);
+			} else {
+				// Strategy B: If exact name not found, load the first sheet
+				// and we will validate headers later.
+				$spreadsheet = $reader->load($filepath);
+			}
+		}
+
+		$sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, false); // Indexed array
+
+		// VALIDATION: Check if this is actually the right file
+		// We check Row 1 (Header) for a known column unique to Order Payments
+		// Row 1, Column 0 should be "Sub Order No"
+		
+		// Sometimes headers are on row 0, sometimes row 1. Let's check the first 5 rows.
+		$found = false;
+		foreach ($sheetData as $row) {
+			// We check if the row contains "Sub Order No" and "Final Settlement Amount"
+			if (in_array('Sub Order No', $row) && in_array('Final Settlement Amount', $row)) {
+				$found = true;
+				break;
+			}
+		}
+
+		if (!$found) {
+			return false; // This is not the correct file/sheet
+		}
+
+		return $sheetData;
+	}
+
 	public function OrderExcelFile()
 	{
 		$codeData = $this->input->post();
+		
+		$current_db = $this->db->database;
+		$current_date = date('Y-m-d');
+		// 2. Define Path (e.g., uploads/Site-Visit-2025)
+		$upload_path = './uploads/'.$current_db.'/'.'order_excel/'.$current_date;
 
-		if(!is_dir('./uploads/order_excel/'))
-		{
-			mkdir('./uploads/order_excel/', 0777, TRUE);
+		if (!is_dir($upload_path)) {
+			mkdir($upload_path, 0777, true); // 0777 permissions, recursive = true
 		}
 
 		if (!empty($_FILES['order_excel']['name'])) 
 		{
-			$config['upload_path'] = './uploads/order_excel';
-			$config['allowed_types'] = 'jpg|jpeg|png|gif|pdf|doc|docx|csv';
+			$config['upload_path'] = $upload_path;
+			$config['allowed_types'] = 'csv|xls|xlsx';
 			$this->load->library('upload', $config);
 
 			$this->upload->initialize($config);
@@ -36,7 +88,7 @@ class Orders extends CI_Controller {
 				$response = [
 					'status' => 'success',
 					'file_name' => $fileData['file_name'],
-					'file_path' => base_url('uploads/order_excel/' . $fileData['file_name']),
+					'file_path' => base_url($upload_path.'/'. $fileData['file_name']),
 				];
 			} else {
 				$error = $this->upload->display_errors();
@@ -64,7 +116,98 @@ class Orders extends CI_Controller {
 				$saveData['list_price'] = $ord_det[8];
 				$saveData['discount_price'] = $ord_det[9];
 
-				$response = $this->acc_orders->save($saveData, null);
+				$sub_order_id = $ord_det[1];
+
+				$check_sub_order = $this->db->query("select id from acc_orders where sub_order_id = '$sub_order_id '")->row();
+				
+				$id = isset($check_sub_order->id) ? $check_sub_order->id : null;
+
+				$response = $this->acc_orders->save($saveData, $id);
+			}
+		}
+
+
+        $this->loader->sendresponse($response);
+
+	}
+
+	public function PaymentExcelFile()
+	{
+		$codeData = $this->input->post();
+
+		$current_db = $this->db->database;
+		$current_date = date('Y-m-d');
+		// 2. Define Path (e.g., uploads/Site-Visit-2025)
+		$relative_path = 'uploads/' . $current_db . '/payment_excel/' . $current_date . '/';
+		$server_path  = FCPATH . $relative_path; 
+
+		if (!is_dir($server_path)) {
+			mkdir($server_path, 0755, true);
+		}
+
+		if (!empty($_FILES['payment_excel']['name'])) 
+		{
+			$config['upload_path'] = $server_path;
+			$config['allowed_types'] = 'csv|xls|xlsx';
+			$this->load->library('upload', $config);
+
+			$this->upload->initialize($config);
+			var_dump($_FILES);
+			if ($this->upload->do_upload('payment_excel')) {
+				$fileData = $this->upload->data();
+				$response = [
+					'status' => 'success',
+					'file_name' => $fileData['file_name'],
+					'file_path' => base_url($server_path.'/'. $fileData['file_name']),
+				];
+			} else {
+				$error = $this->upload->display_errors();
+			}
+			$full_physical_path = $fileData['full_path'];
+		}
+		else {
+			echo json_encode(['status' => 'error', 'message' => 'No file uploaded']);
+		}
+
+		$payment_excel_data = $this->get_specific_sheet_data($full_physical_path, 'Order Payments');
+
+		if ($payment_excel_data === false) {
+        unlink($full_physical_path); // Delete invalid file
+        echo json_encode(['status' => 'error', 'message' => 'Sheet "Order Payments" not found in file.']);
+        return;
+    	}
+
+		foreach($payment_excel_data as $ind => $ord_det)
+		{
+			if($ind > 2)
+			{
+				$saveData = array();
+				$saveData['sub_order_id'] = $ord_det[0];
+				$saveData['order_date'] = $ord_det[1];
+				$saveData['dispatch_date'] = $ord_det[2];
+				$saveData['product_name'] = $ord_det[3];
+				$saveData['sku'] = $ord_det[4];
+				$saveData['live_status'] = $ord_det[5];
+				$saveData['prod_gst'] = $ord_det[6];
+				$saveData['list_price'] = $ord_det[7];
+				$saveData['qty'] = $ord_det[8];
+				$saveData['trans_id'] = $ord_det[9];
+				$saveData['trans_date'] = $ord_det[10];
+				$saveData['settle_price'] = $ord_det[11];
+				$saveData['price_type'] = $ord_det[12];
+				$saveData['sale_price'] = $ord_det[13];
+				$saveData['return_price'] = $ord_det[14];
+				$saveData['ship_charge'] = $ord_det[27];
+				$saveData['tcs'] = $ord_det[32];
+				$saveData['tds'] = $ord_det[34];
+
+				$sub_order_id = $ord_det[0];
+
+				$check_sub_order = $this->db->query("select id from acc_payments where sub_order_id = '$sub_order_id '")->row();
+				
+				$id = isset($check_sub_order->id) ? $check_sub_order->id : null;
+
+				$response = $this->acc_payments->save($saveData, $id);
 			}
 		}
 
@@ -87,6 +230,41 @@ class Orders extends CI_Controller {
             echo 'Error loading file: ' . $e->getMessage();
         }
     }
+
+	
+	public function getOrderListNew()
+	{
+		if($this->app_users->authenticate())
+		{
+			$postData = (object)$this->input->post();
+
+            $data = new StdClass;
+
+            // $data->total_length = $this->income_expense->getIncomeExpList(true, $postData, $postData->pageIndex, ($postData->pageIndex * $postData->pageSize),  $postData->pageSize, $postData->isMobile);
+
+			$data->order_list = $this->db->query("select * from acc_orders order by order_date desc limit 10")->result();
+            
+			foreach($data->order_list as $inex)
+			{
+				// $inex->category_name = $this->db->query("select name from catagory where id = $inex->category_id")->row()->name;
+				// $inex->t_type = ucfirst($inex->type);
+			}
+
+			$data->others_data = $this->db->query("select count(id) as value, reason as name from acc_orders group by reason")->result();
+
+			foreach($data->others_data as $d)
+			{
+				$d->name = $d->name.' - '.$d->value;
+			}
+			
+			$this->loader->sendresponse($data);
+
+		}
+		else
+		{
+            $this->loader->sendresponse();
+		}
+	}
 
 	public function getOrderList()
 	{

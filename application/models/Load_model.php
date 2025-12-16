@@ -1,15 +1,18 @@
 <?php
 
-class Load_model extends CI_Model {
-    
-    public function __construct() {
+class Load_model extends CI_Model
+{
+
+    public function __construct()
+    {
         parent::__construct();
         $this->load->database();
-        
+
     }
-   
-    public function loadModels() {
-         
+
+    public function loadModels()
+    {
+
         $models = array();
 
         $models = [
@@ -29,6 +32,7 @@ class Load_model extends CI_Model {
             'acc_account_type',
             'acc_cash_purpose',
             'acc_orders',
+            'acc_payments',
             'acc_income_expense',
             'acc_investment',
             'acc_investment_calculate',
@@ -47,25 +51,21 @@ class Load_model extends CI_Model {
             'return_claim_folders',
         ];
 
+        // Access the main Controller instance
+        $CI =& get_instance();
 
-//   `created_by` varchar(255) NOT NULL,
-//   `updated_by` varchar(255) NOT NULL,
-//   `created_time` varchar(255) NOT NULL,
-//   `updated_time` varchar(255) NOT NULL,
-//   `session_id` varchar(255) NOT NULL
-
-        foreach($models as $m)
-        {
-            $this->load->model($m.'_model', $m);
+        foreach ($models as $m) {
+            // Load model and attach it to the Controller instance
+            $CI->load->model($m . '_model', $m);
         }
     }
 
-    public function sendresponse($data=null)
-    { 
+    public function sendresponse($data = null)
+    {
         $response['status'] = 'success';
         $response['result'] = $data;
         print_r(json_encode($response));
-       
+
     }
 
 }

@@ -62,24 +62,34 @@ class Masters extends CI_Controller {
             $where = array();
             $where['email'] = $current_user->email;
             $where['company_id'] = $current_user->company_id;
+
             $app_access = $this->companies_license_users->get_by($where);
+
             $access_model = unserialize($app_access[0]->access_blob)->value;
+
             if(sizeof($app_access) > 0)
             {
                 $data = new stdClass;
                 $data->admin = $current_user->email == 'prem@gmail.dex' ? 1 : 0;
                 $data->nav_data = array();
-                $data->nav_data = $this->db->query("select * from (select b.*, ifnull(a.id, 0) as ml_id, ifnull(b.id, 0) as mh_id from modellist a left join modelheader b on a.id = b.modellist_id)final where ml_id in($access_model->modellist_ids) and mh_id in($access_model->modelheader_ids);")->result();
-                $d = $this->db->last_query();
-                foreach($data->nav_data as $d)
+                // $data->nav_data = $this->db->query("select * from (select b.*, ifnull(a.id, 0) as ml_id, ifnull(b.id, 0) as mh_id from modellist a left join modelheader b on a.id = b.modellist_id)final where ml_id in($access_model->modellist_ids) and mh_id in($access_model->modelheader_ids);")->result();
+
+                $data->nav_data = $this->db->query("select * from modellist where id in($access_model->modellist_ids)")->result();
+
+                foreach($data->nav_data as $n)
                 {
-                    $d->modelset = $this->db->query("select * from modelset where modelheader_id = $d->mh_id and modellist_id = $d->ml_id and id in($access_model->modelset_ids);")->result();
-    
-                    foreach($d->modelset as $set)
+                    $n->modelheader = $this->db->query("select * from modelheader where id in($access_model->modelheader_ids)")->result();
+
+                    foreach($n->modelheader as $d)
                     {
-                        if($set->model_type == 'collapse')
-                        {
-                            $set->modelinner = $this->db->query("select * from modelinner where modelheader_id = $d->mh_id and modellist_id = $d->ml_id and modelset_id = $set->id and id in($access_model->modelinner_ids);")->result();
+                        $d->modelset = $this->db->query("select * from modelset where modelheader_id = $n->id and modellist_id = $d->id and id in($access_model->modelset_ids);")->result();
+        
+                        foreach($d->modelset as $set)
+                        {   
+                            if($set->model_type == 'collapse')
+                            {
+                                $set->modelinner = $this->db->query("select * from modelinner where modelheader_id = $n->id and modellist_id = $d->id and modelset_id = $set->id and id in($access_model->modelinner_ids);")->result();
+                            }
                         }
                     }
                 }

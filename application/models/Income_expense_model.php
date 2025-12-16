@@ -1,13 +1,15 @@
 <?php
 
-class Income_expense_model extends MY_Model {
-    
+class Income_expense_model extends MY_Model
+{
+
     public $table = 'income_expense';
     public $primary_key = 'id';
 
     private $key = "ample&$@";
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->load->database();
         $this->load->helper('jwt_helper');
@@ -35,50 +37,52 @@ class Income_expense_model extends MY_Model {
         $quries[] = "ALTER TABLE `income_expense` ADD `trans_no` INT NOT NULL AFTER `date`;";
     }
 
-    public function getIncomeExpList($type, $postData, $pageIndex, $offset, $pageSize, $isMobile)
+    public function getIncomeExpList($isCount, $postData, $pageIndex, $offset, $pageSize, $isMobile)
     {
-        if($type)
-        {
+        if ($isCount) {
             $this->db->select("count(id) as id");
-        }
-        else
-        {
+        } else {
             $this->db->select("*");
         }
 
-        if(isset($postData->from_date) && $postData->from_date !== 'null' &&  $postData->from_date !== 'undefined' && isset($postData->to_date) && $postData->to_date !=='null'  &&  $postData->to_date !== 'undefined')
-        {
-            $this->db->where("date between '$postData->from_date' and '$postData->to_date'");
+        // Search Filter
+        if (isset($postData->search) && $postData->search !== '' && $postData->search !== 'null' && $postData->search !== 'undefined') {
+            $this->db->group_start();
+            $this->db->like('description', $postData->search);
+            $this->db->or_like('amount', $postData->search);
+            $this->db->or_like('trans_no', $postData->search);
+            $this->db->group_end();
         }
-        
-        if(isset($postData->type) && $postData->type !== 'null'  &&  $postData->type !== 'undefined')
-        {
-            $this->db->where("type = '$postData->type'");
+
+        if (isset($postData->from_date) && $postData->from_date !== 'null' && $postData->from_date !== 'undefined' && isset($postData->to_date) && $postData->to_date !== 'null' && $postData->to_date !== 'undefined') {
+            $this->db->where("date >=", $postData->from_date);
+            $this->db->where("date <=", $postData->to_date);
         }
-        
-        if(isset($postData->category_id) && $postData->category_id !== 'null'  &&  $postData->category_id !== 'undefined')
-        {
-            $this->db->where("category_id = '$postData->category_id'");
+
+        if (isset($postData->type) && $postData->type !== 'null' && $postData->type !== 'undefined') {
+            $this->db->where("type", $postData->type);
         }
-        
-        if(isset($postData->payment_method) && $postData->payment_method !== 'null'  &&  $postData->payment_method !== 'undefined')
-        {
-            $this->db->where("payment_method = '$postData->payment_method'");
+
+        if (isset($postData->category_id) && $postData->category_id !== 'null' && $postData->category_id !== 'undefined') {
+            $this->db->where("category_id", $postData->category_id);
+        }
+        // $this->db->where('description is NOT NULL', NULL, FALSE);
+
+        if (isset($postData->payment_method) && $postData->payment_method !== 'null' && $postData->payment_method !== 'undefined') {
+            $this->db->where("payment_method", $postData->payment_method);
         }
 
         $this->db->from('income_expense');
 
         $this->db->order_by('trans_no', 'desc');
- 
-        if($type)
-        {
-           $data = $this->db->count_all_results();
-        }
-        else
-        {
-            if(!$isMobile)
+        // $this->db->order_by('date','desc');
+
+        if ($isCount) {
+            $data = $this->db->count_all_results();
+        } else {
+            // Apply pagination if not mobile (or if you want pagination on mobile too, remove the check)
+            // if(!$isMobile) 
             {
-                
                 $this->db->limit($pageSize, $offset);
             }
 
