@@ -68,7 +68,7 @@ class Auth extends CI_Controller
             return;
         }
 
-        $this->db->trans_start();
+        // $this->db->trans_start();
 
         // Prepare initial user data
         $newUser = [
@@ -89,21 +89,13 @@ class Auth extends CI_Controller
                 'app_user_id' => $id
             ];
 
-            $this->app_users_list->save($newUserList);
-            $this->app_users_details->save($newUserList);
+            $this->app_users_list->save($newUserList, null, false);
+            $this->app_users_details->save($newUserList, null, false);
         }
 
-        $this->db->trans_complete();
-
-        if ($this->db->trans_status() === FALSE) {
-            $response['log'] = false;
-            $response['status'] = 'Signup Error';
-            $response['result'] = 'Database transaction failed';
-        } else {
-            $response['log'] = true;
-            $response['status'] = 'Registration Successfully';
-            $response['result'] = $id;
-        }
+        $response['log'] = true;
+        $response['status'] = 'Registration Successfully';
+        $response['result'] = $id;
 
         $this->loader->sendresponse($response);
     }

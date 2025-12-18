@@ -1,20 +1,20 @@
 <?php
 
-class Companies extends CI_Controller {
+class Companies extends CI_Controller
+{
 
 
-	public function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->load->database();
         $this->load->model('Load_model', 'loader');
-		$this->loader->loadModels();
+        $this->loader->loadModels();
     }
 
-	public function saveCompanies()
+    public function saveCompanies()
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $postData = json_decode(file_get_contents('php://input'), true);
 
             $id = isset($postData['id']) ? $postData['id'] : null;
@@ -23,24 +23,19 @@ class Companies extends CI_Controller {
 
             $this->loader->sendresponse($postData);
 
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
 
     public function deleteCompanies($id)
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $this->companies->delete($id);
             $where['company_id'] = $id;
             $this->companies_license_users->delete_by($where);
             $this->loader->sendresponse($id);
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
@@ -49,33 +44,28 @@ class Companies extends CI_Controller {
     {
         $users = $this->db->query("select email, username from app_users")->result();
 
-        foreach($modelset_id as $m)
-        {
+        foreach ($users as $m) {
             $m->icon = $this->db->query("select * from app_users")->result();
         }
-        
-        $this->loader->sendresponse($error);
+
+        $this->loader->sendresponse($users);
     }
 
     public function usersConfig()
     {
-        if($this->app_users->authenticate())
-        {
-            $getData =(object)$this->input->get();
+        if ($this->app_users->authenticate()) {
+            $getData = (object) $this->input->get();
             $data = $this->db->query("select *, (select email from app_users where id = app_user_id) as email from app_users_list;")->result();
 
             $this->loader->sendresponse($data);
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
 
-	public function saveCompanyUser()
+    public function saveCompanyUser()
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $postData = json_decode(file_get_contents('php://input'), true);
 
             $id = isset($postData['id']) ? $postData['id'] : null;
@@ -84,21 +74,18 @@ class Companies extends CI_Controller {
 
             $model_ids = $company[0]->model_ids;
 
-            if($id == null)
-            {
+            if ($id == null) {
                 $accessdata = new StdClass;
                 $accessdata->modellist_ids = '';
                 $accessdata->modelheader_ids = '';
                 $accessdata->modelset_ids = '';
                 $accessdata->modelinner_ids = '';
-            }
-            else
-            {
-                $accessdata = (object)$postData['access_data'];
+            } else {
+                $accessdata = (object) $postData['access_data'];
             }
 
             $access_data = new StdClass;
-    
+
             $access_data->model_ids = $model_ids;
 
             $access_data->value = $accessdata;
@@ -109,17 +96,14 @@ class Companies extends CI_Controller {
 
             $this->loader->sendresponse($postData);
 
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
 
     public function usersModelConfig($user_id)
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $access_data = $this->companies_license_users->get($user_id);
 
             $model_right = unserialize($access_data[0]->access_blob)->value;
@@ -129,43 +113,36 @@ class Companies extends CI_Controller {
             $model_ids = $company[0]->model_ids;
 
             $accessdata = $this->db->query("select * from modellist where id in($model_ids);")->result();
-    
-            foreach($accessdata as $d)
-            {
+
+            foreach ($accessdata as $d) {
                 $d->expand = false;
                 $d->modelheader = $this->db->query("select * from modelheader where modellist_id = $d->id")->result();
                 $d->task = false;
 
-                foreach($d->modelheader as $hd)
-                {
+                foreach ($d->modelheader as $hd) {
                     $hd->modelset = $this->db->query("select * from modelset where modellist_id = $d->id and modelheader_id = $hd->id")->result();
 
                     $hd->task = false;
 
-                    foreach($hd->modelset as $ms)
-                    {
+                    foreach ($hd->modelset as $ms) {
                         $ms->task = false;
 
                         $ms->modelinner = $this->db->query("select * from modelinner where modellist_id = $d->id and modelheader_id = $hd->id and modelset_id = $ms->id")->result();
 
                         $ms->check_inner = 0;
 
-                        foreach($ms->modelinner as $mi)
-                        {
+                        foreach ($ms->modelinner as $mi) {
                             $mi->task = false;
 
                             $modelinner_ids = explode(',', $model_right->modelinner_ids);
 
-                            foreach($modelinner_ids as $inner_id)
-                            {
-                                if($mi->id == $inner_id)
-                                {
+                            foreach ($modelinner_ids as $inner_id) {
+                                if ($mi->id == $inner_id) {
                                     $mi->task = true;
-                                    $ms->check_inner +=1;
+                                    $ms->check_inner += 1;
                                 }
 
-                                if(sizeof($modelinner_ids) == sizeof($ms->modelinner) && sizeof($modelinner_ids) == $ms->check_inner)
-                                {
+                                if (sizeof($modelinner_ids) == sizeof($ms->modelinner) && sizeof($modelinner_ids) == $ms->check_inner) {
                                     $ms->task = true;
                                     $hd->task = true;
                                     $d->task = true;
@@ -183,44 +160,36 @@ class Companies extends CI_Controller {
             $data = $accessdata;
 
             $this->loader->sendresponse($data);
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
 
     public function getCompanies()
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $companies_list = $this->companies->get();
-            foreach($companies_list as $cmp)
-            {
-                $cmp->model_ids = $cmp->model_ids !== '' ?  explode(',', $cmp->model_ids) : '';
+            foreach ($companies_list as $cmp) {
+                $cmp->model_ids = $cmp->model_ids !== '' ? explode(',', $cmp->model_ids) : '';
             }
             $this->loader->sendresponse($companies_list);
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
 
     public function getCompaniesUser($company_id)
     {
-        if($this->app_users->authenticate())
-        {
+        if ($this->app_users->authenticate()) {
             $companies_list = $this->db->query("select * from companies_license_users where company_id = $company_id")->result();
-            foreach($companies_list as $cmp)
-            {
+            foreach ($companies_list as $cmp) {
+                $user = $this->db->query("select profile_url, display_name from app_users_details where email = '$cmp->email'")->row();
+                $cmp->profile_url = isset($user->profile_url) ? base_url($user->profile_url) : '';
+                $cmp->display_name = isset($user->display_name) ? $user->display_name : '';
                 $cmp->access_blob = unserialize($cmp->access_blob);
-                // $cmp->name = $this->db->query("select name from app_users where email = '$cmp->email'")->row()->name;
             }
             $this->loader->sendresponse($companies_list);
-        }
-        else
-        {
+        } else {
             $this->loader->sendresponse();
         }
     }
@@ -231,7 +200,7 @@ class Companies extends CI_Controller {
 
         $user = $this->app_users->get_by(array('email' => $postData['email']));
 
-        $user = (object)($user[0]);
+        $user = (object) ($user[0]);
 
         $companies_list = $this->db->query("select company_id, (select company from companies where id = company_id) as company_name from companies_license_users where email = '$user->email'")->result();
         // foreach($companies_list as $cmp)
@@ -239,6 +208,6 @@ class Companies extends CI_Controller {
         //     $cmp->access_blob = unserialize($cmp->access_blob);
         // }
         $this->loader->sendresponse($companies_list);
-       
+
     }
 }

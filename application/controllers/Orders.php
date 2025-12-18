@@ -530,20 +530,17 @@ class Orders extends CI_Controller
 
 	public function SplitPdfByContent()
 	{
-		// 1. Upload the File
-		if (empty($_FILES['pdf_file']['name'])) {
-			echo json_encode(['status' => 'error', 'message' => 'No file uploaded']);
-			return;
-		}
-		$config['upload_path'] = './uploads/temp/';
-
-		// Ensure temp directory exists
-		if (!is_dir($config['upload_path'])) {
-			mkdir($config['upload_path'], 0777, true);
+		// 0. Configuration
+		$upload_path = './uploads/temp_pdf/';
+		if (!is_dir($upload_path)) {
+			mkdir($upload_path, 0777, true);
 		}
 
+		// 1. Upload File
+		$config['upload_path'] = $upload_path;
 		$config['allowed_types'] = 'pdf';
 		$config['encrypt_name'] = TRUE;
+
 		$this->load->library('upload', $config);
 		$this->upload->initialize($config);
 
@@ -551,85 +548,205 @@ class Orders extends CI_Controller
 			echo json_encode(['status' => 'error', 'message' => $this->upload->display_errors()]);
 			return;
 		}
-		$uploadData = $this->upload->data();
-		$filePath = $uploadData['full_path'];
-		// 2. Get Keywords
-		$keywordsInput = $this->input->post('keywords'); // e.g., "S, M, L, XL"
-		$keywords = array_map('trim', explode(',', $keywordsInput));
-		// 3. Parse and Find Pages
-		$parser = new Parser();
-		$pdf = $parser->parseFile($filePath);
-		$pages = $pdf->getPages();
-		$groups = [];
-		foreach ($keywords as $kw) {
-			$groups[$kw] = []; // Initialize groups [ 'S' => [1, 5], 'M' => [2, 3] ]
-		}
-		$groups['Uncategorized'] = [];
-		foreach ($pages as $pageIndex => $page) {
-			$text = $page->getText();
-			$matched = false;
 
-			foreach ($keywords as $kw) {
-				// Case-insensitive search
+		$file_data = $this->upload->data();
+		$file_path = $file_data['full_path'];
+		$keywords = $this->input->post('keywords'); // Comma separated
+		$is_extract = $this->input->post('extract_data') === 'true';
+		$keywords_arr = array_map('trim', explode(',', $keywords));
+
+		// 2. Parse PDF Text
+		$parser = new Parser();
+		$pdf = $parser->parseFile($file_path);
+		$pages = $pdf->getPages();
+		$extracted_data = [];
+		$split_groups = []; // [ 'keyword' => [page_num, page_num] ]
+
+		// 3. Analyze Pages
+		foreach ($pages as $page_index => $page) {
+			$page_num = $page_index + 1;
+			$text = $page->getText();
+
+			// A. Extraction Logic
+			if ($is_extract) {
+				// Regex for Meesho Labels (Adjust patterns as needed)
+				$sku = '';
+				$size = '';
+				$order_id = '';
+
+				// Capture SKU (Looking for SKU: or Product Code:)
+				if (preg_match('/(?:SKU|Style Code)[:\s]+([A-Z0-9\-_]+)/i', $text, $matches)) {
+					$sku = trim($matches[1]);
+				}
+
+				// Capture Size (Looking for Size: X)
+				if (preg_match('/(?:Size)[:\s]+([0-9A-Z]+)/i', $text, $matches)) {
+					$size = trim($matches[1]);
+				}
+
+				// Capture Order ID
+				if (preg_match('/(?:Order ID)[:\s]+([0-9]+)/i', $text, $matches)) {
+					$order_id = trim($matches[1]);
+				}
+
+				// Always add page data to JSON
+				$extracted_data[] = [
+					'page' => $page_num,
+					'sku' => $sku,
+					'size' => $size,
+					'order_id' => $order_id,
+					'raw_text' => trim($text) // Include full text
+				];
+
+			}
+
+			// B. Splitting Logic
+			foreach ($keywords_arr as $kw) {
 				if (stripos($text, $kw) !== false) {
-					$groups[$kw][] = $pageIndex + 1; // 1-based index for FPDI
-					$matched = true;
-					// Adjust logic here: if a page works for multiple sizes, do we duplicate?
-					// Assuming yes for now, or break; if single assignment.
+					if (!isset($split_groups[$kw])) {
+						$split_groups[$kw] = [];
+					}
+					$split_groups[$kw][] = $page_num;
 				}
 			}
-			if (!$matched) {
-				$groups['Uncategorized'][] = $pageIndex + 1;
+		}
+
+		// 4. Return Data OR Generate Split PDFs
+		if ($is_extract) {
+			// 4a. Save to Database
+			$tableName = 'pdf_extracted_data';
+
+			// Check if table exists, create if not
+			if (!$this->db->table_exists($tableName)) {
+				$this->load->dbforge();
+				$this->dbforge->add_field([
+					'id' => [
+						'type' => 'INT',
+						'constraint' => 11,
+						'unsigned' => TRUE,
+						'auto_increment' => TRUE
+					],
+					'file_name' => [
+						'type' => 'VARCHAR',
+						'constraint' => '255',
+						'null' => TRUE
+					],
+					'page_num' => [
+						'type' => 'INT',
+						'constraint' => 11
+					],
+					'sku' => [
+						'type' => 'VARCHAR',
+						'constraint' => '100',
+						'null' => TRUE
+					],
+					'size' => [
+						'type' => 'VARCHAR',
+						'constraint' => '50',
+						'null' => TRUE
+					],
+					'order_id' => [
+						'type' => 'VARCHAR',
+						'constraint' => '100',
+						'null' => TRUE
+					],
+					'raw_text' => [
+						'type' => 'TEXT',
+						'null' => TRUE
+					],
+					'created_at' => [
+						'type' => 'DATETIME',
+						'null' => TRUE
+					]
+				]);
+				$this->dbforge->add_key('id', TRUE);
+				$this->dbforge->create_table($tableName);
 			}
-		}
-		// 4. Split and Save New PDFs
-		$outputDir = './uploads/split_output_' . time() . '/';
-		if (!is_dir($outputDir)) {
-			mkdir($outputDir, 0777, true);
-		}
-		$generatedFiles = [];
-		foreach ($groups as $groupName => $pageNumbers) {
-			if (empty($pageNumbers))
-				continue;
-			$newPdf = new Fpdi();
-			$pageCount = $newPdf->setSourceFile($filePath);
-			foreach ($pageNumbers as $pNo) {
-				$templateId = $newPdf->importPage($pNo);
 
-				// FPDI getTemplateSize returns an array with width/height/orientation
-				$size = $newPdf->getTemplateSize($templateId);
+			// Batch Insert
+			if (!empty($extracted_data)) {
+				$insertInfo = [];
+				$current_time = date('Y-m-d H:i:s');
+				$orig_file_name = $_FILES['pdf_file']['name'];
 
-				// AddPage takes orientation as the first argument ('P' or 'L')
-				// and size as the second (array or string).
-				// We use the imported page's size.
-				$newPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-				$newPdf->useTemplate($templateId);
+				foreach ($extracted_data as $row) {
+					$insertInfo[] = [
+						'file_name' => $orig_file_name,
+						'page_num' => $row['page'],
+						'sku' => $row['sku'],
+						'size' => $row['size'],
+						'order_id' => $row['order_id'],
+						'raw_text' => $row['raw_text'],
+						'created_at' => $current_time
+					];
+				}
+
+				$this->pdf_extracted_data->save($insertInfo, null);
+				// $this->db->insert_batch($tableName, $insertInfo);
 			}
-			$outputName = $groupName . '.pdf';
-			$outputPath = $outputDir . $outputName;
-			$newPdf->Output($outputPath, 'F');
-			$generatedFiles[] = $outputPath;
-		}
-		// 5. Create ZIP (Optional, or return links)
-		$this->load->library('zip');
-		foreach ($generatedFiles as $file) {
-			$this->zip->read_file($file, false); // Add to root of zip
+
+			// Return JSON directly
+			echo json_encode([
+				'status' => 'success',
+				'result' => [
+					'extracted_data' => $extracted_data
+				]
+			]);
+
+			// Cleanup
+			unlink($file_path);
+			return;
 		}
 
-		$zipName = 'Split_Files_' . time() . '.zip';
-		$zipPath = $outputDir . $zipName;
-		$this->zip->archive($zipPath);
-		// 6. Return Response
-		// Ensure base_url uses the correct relative path from root
-		$downloadUrl = base_url() . str_replace('./', '', $zipPath);
+		// 5. Generate PDFs for Split Groups (FPDI)
+		$zip_files = [];
+		foreach ($split_groups as $kw => $page_nums) {
+			$new_pdf = new Fpdi();
+			$page_count = $new_pdf->setSourceFile($file_path);
+
+			foreach ($page_nums as $p_num) {
+				$tpl = $new_pdf->importPage($p_num);
+
+				// Get size of imported page to maintain orientation
+				$size = $new_pdf->getTemplateSize($tpl);
+				$new_pdf->addPage($size['orientation'], [$size['width'], $size['height']]);
+
+				$new_pdf->useTemplate($tpl);
+			}
+
+			$safe_kw = preg_replace('/[^A-Za-z0-9\-]/', '', $kw);
+			$out_name = "Split_{$safe_kw}.pdf";
+			$out_path = $upload_path . $out_name;
+			$new_pdf->Output($out_path, 'F');
+			$zip_files[] = $out_path;
+		}
+
+		// 6. Create ZIP
+		$zip = new ZipArchive();
+		$zip_name = 'Split_Files_' . time() . '.zip';
+		$zip_path = $upload_path . $zip_name;
+
+		if ($zip->open($zip_path, ZipArchive::CREATE) === TRUE) {
+			foreach ($zip_files as $file) {
+				$zip->addFile($file, basename($file));
+			}
+			$zip->close();
+		}
+
+		// 7. Return Download URL
+		// Relative path from base_url needs to match the upload path
+		$download_url = base_url('uploads/temp_pdf/' . $zip_name);
 
 		echo json_encode([
 			'status' => 'success',
 			'result' => [
-				'download_url' => $downloadUrl,
-				'groups' => $groups
+				'download_url' => $download_url
 			]
 		]);
+
+		// Cleanup original PDF (optional, keeping zip for download)
+		// unlink($file_path); 
+		// Note: You might want a cron job to clean up temp_pdf later
 	}
 
 }
