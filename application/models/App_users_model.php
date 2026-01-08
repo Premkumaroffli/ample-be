@@ -141,10 +141,10 @@ class App_users_model extends MY_Model
 
         // New Config
         $config['hostname'] = 'localhost';
-        // $config['username'] = 'root';
-        // $config['password'] = '';
-        $config['username'] = $db_name;
-        $config['password'] = 'Admin@5467';
+        $config['username'] = 'root';
+        $config['password'] = '';
+        // $config['username'] = $db_name;
+        // $config['password'] = 'Admin@5467';
         $config['database'] = $db_name;
         $config['dbdriver'] = 'mysqli';
         $config['pconnect'] = FALSE; // Must be FALSE
