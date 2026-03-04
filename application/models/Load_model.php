@@ -46,6 +46,7 @@ class Load_model extends CI_Model
         'return_claim_folders',
         'pdf_extracted_data',
         'task_manager',
+        'payment_pending',
         'daily_task',
     ];
 
