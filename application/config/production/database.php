@@ -87,16 +87,16 @@ $query_builder = TRUE;
 // password: Admin@5467
 
 $db['default'] = array(
-	'dsn'	=> '',
+	'dsn' => '',
 	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
+	// 'username' => 'root',
+	// 'password' => '',
 	// 'username' => 'u694695253_01',
 	// 'password' => 'Egret@812',
-	'database' => 'u694695253_expense',
-	// 'username' => 'u499534799_rixzo',
-	// 'password' => 'Admin@5467',
-	// 'database' => 'u499534799_rixzo',
+	// 'database' => 'u694695253_expense',
+	'username' => 'u499534799_rixzo',
+	'password' => 'Admin@5467',
+	'database' => 'u499534799_rixzo',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
