@@ -108,7 +108,7 @@ class Income_expense extends CI_Controller
 
 			$data = $this->db->query("select *, (select name from catagory where id = category_id) as category_name from income_expense where id = $id")->row();
 
-			foreach ($data->income_expense_data as $inex) {
+			foreach ($data as $inex) {
 				$inex->category_name = $this->db->query("select name from catagory where id = $inex->category_id")->row()->name;
 				$inex->t_type = ucfirst($inex->type);
 			}
